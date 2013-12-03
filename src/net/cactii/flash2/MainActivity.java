@@ -71,7 +71,6 @@ public class MainActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(TorchSwitch.TORCH_STATE_CHANGED)) {
-                mTorchOn = intent.getIntExtra("state", 0) != 0;
                 updateBigButtonState();
             }
         }

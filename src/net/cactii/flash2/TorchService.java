@@ -28,6 +28,7 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.Log;
 
 public class TorchService extends Service {
@@ -114,8 +115,8 @@ public class TorchService extends Service {
                 .build();
 
         startForeground(getString(R.string.app_name).hashCode(), notification);
-        updateState(true);
-
+        Settings.System.putInt(this.getContentResolver(), Settings.System.TORCH_STATE, 1);
+        this.sendBroadcast(new Intent(TorchSwitch.TORCH_STATE_CHANGED));
         return START_STICKY;
     }
 
@@ -125,17 +126,12 @@ public class TorchService extends Service {
         stopForeground(true);
         mHandler.removeCallbacksAndMessages(null);
         FlashDevice.instance(this).setFlashMode(FlashDevice.OFF);
-        updateState(false);
+        Settings.System.putInt(this.getContentResolver(), Settings.System.TORCH_STATE, 0);
+        this.sendBroadcast(new Intent(TorchSwitch.TORCH_STATE_CHANGED));
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    private void updateState(boolean on) {
-        Intent intent = new Intent(TorchSwitch.TORCH_STATE_CHANGED);
-        intent.putExtra("state", on ? 1 : 0);
-        sendStickyBroadcast(intent);
     }
 }
