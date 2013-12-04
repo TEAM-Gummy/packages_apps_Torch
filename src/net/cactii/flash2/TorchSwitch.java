@@ -1,22 +1,6 @@
-/*
- * Copyright (C) 2013 The CyanogenMod Project
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 3 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA  02110-1301, USA.
- */
-
 package net.cactii.flash2;
+
+import java.util.List;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -27,28 +11,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-
-import java.util.List;
+import android.provider.Settings;
 
 public class TorchSwitch extends BroadcastReceiver {
 
     public static final String TOGGLE_FLASHLIGHT = "net.cactii.flash2.TOGGLE_FLASHLIGHT";
     public static final String TORCH_STATE_CHANGED = "net.cactii.flash2.TORCH_STATE_CHANGED";
 
+    private SharedPreferences mPrefs;
+
     @Override
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(TOGGLE_FLASHLIGHT)) {
+    public void onReceive(Context context, Intent receivingIntent) {
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (receivingIntent.getAction().equals(TOGGLE_FLASHLIGHT)) {
             // bright setting can come from intent or from prefs depending on
             // on what send the broadcast
             //
             // Unload intent extras if they exist:
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            boolean bright = intent.getBooleanExtra("bright", prefs.getBoolean("bright", false));
-            boolean strobe = intent.getBooleanExtra("strobe", prefs.getBoolean("strobe", false));
-            int period = intent.getIntExtra("period", 200);
-
+            boolean bright = receivingIntent.getBooleanExtra("bright", false) |
+                    mPrefs.getBoolean("bright", false);
+            boolean strobe = receivingIntent.getBooleanExtra("strobe", false) |
+                    mPrefs.getBoolean("strobe", false);
+            int period = receivingIntent.getIntExtra("period", 200);
             Intent i = new Intent(context, TorchService.class);
-            if (this.torchServiceRunning(context)) {
+            if (this.TorchServiceRunning(context)) {
                 context.stopService(i);
             } else {
                 i.putExtra("bright", bright);
@@ -59,10 +45,13 @@ public class TorchSwitch extends BroadcastReceiver {
         }
     }
 
-    private boolean torchServiceRunning(Context context) {
+    private boolean TorchServiceRunning(Context context) {
         ActivityManager am = (ActivityManager) context.getSystemService(Activity.ACTIVITY_SERVICE);
+
         List<ActivityManager.RunningServiceInfo> svcList = am.getRunningServices(100);
 
+        if (!(svcList.size() > 0))
+            return false;
         for (RunningServiceInfo serviceInfo : svcList) {
             ComponentName serviceName = serviceInfo.service;
             if (serviceName.getClassName().endsWith(".TorchService")
