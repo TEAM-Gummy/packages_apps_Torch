@@ -16,6 +16,8 @@ import android.provider.Settings;
 public class TorchSwitch extends BroadcastReceiver {
 
     public static final String TOGGLE_FLASHLIGHT = "net.cactii.flash2.TOGGLE_FLASHLIGHT";
+    public static final String FLASHLIGHT_OFF = "net.cactii.flash2.FLASHLIGHT_OFF";
+    public static final String FLASHLIGHT_ON = "net.cactii.flash2.FLASHLIGHT_ON";
     public static final String TORCH_STATE_CHANGED = "net.cactii.flash2.TORCH_STATE_CHANGED";
 
     private SharedPreferences mPrefs;
@@ -23,17 +25,18 @@ public class TorchSwitch extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent receivingIntent) {
         mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        if (receivingIntent.getAction().equals(TOGGLE_FLASHLIGHT)) {
-            // bright setting can come from intent or from prefs depending on
-            // on what send the broadcast
-            //
-            // Unload intent extras if they exist:
-            boolean bright = receivingIntent.getBooleanExtra("bright", false) |
-                    mPrefs.getBoolean("bright", false);
-            boolean strobe = receivingIntent.getBooleanExtra("strobe", false) |
-                    mPrefs.getBoolean("strobe", false);
-            int period = receivingIntent.getIntExtra("period", 200);
-            Intent i = new Intent(context, TorchService.class);
+        String action = receivingIntent.getAction();
+        // bright setting can come from intent or from prefs depending on
+        // on what send the broadcast
+        //
+        // Unload intent extras if they exist:
+        boolean bright = receivingIntent.getBooleanExtra("bright", false) |
+                mPrefs.getBoolean("bright", false);
+        boolean strobe = receivingIntent.getBooleanExtra("strobe", false) |
+                mPrefs.getBoolean("strobe", false);
+        int period = receivingIntent.getIntExtra("period", 200);
+        Intent i = new Intent(context, TorchService.class);
+        if (action.equals(TOGGLE_FLASHLIGHT)) {
             if (this.TorchServiceRunning(context)) {
                 context.stopService(i);
             } else {
@@ -42,6 +45,13 @@ public class TorchSwitch extends BroadcastReceiver {
                 i.putExtra("period", period);
                 context.startService(i);
             }
+        } else if (action.equals(FLASHLIGHT_ON)) {
+            i.putExtra("bright", bright);
+            i.putExtra("strobe", strobe);
+            i.putExtra("period", period);
+            context.startService(i);
+        } else if (action.equals(FLASHLIGHT_OFF)) {
+            context.stopService(i);
         }
     }
 
