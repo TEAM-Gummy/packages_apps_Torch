@@ -162,12 +162,6 @@ public class MainActivity extends Activity {
             }
 
         });
-
-        // Show the about dialog, the first time the user runs the app.
-        if (!this.mPrefs.getBoolean("aboutSeen", false)) {
-            this.openAboutDialog();
-            this.mPrefsEditor.putBoolean("aboutSeen", true);
-        }
     }
 
     public void onPause() {
