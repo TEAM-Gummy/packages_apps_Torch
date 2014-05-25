@@ -23,10 +23,12 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class TorchSwitch extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(TOGGLE_FLASHLIGHT)) {
+
             // bright setting can come from intent or from prefs depending on
             // on what send the broadcast
             //
@@ -48,9 +51,11 @@ public class TorchSwitch extends BroadcastReceiver {
             Intent i = new Intent(context, TorchService.class);
             if (this.torchServiceRunning(context)) {
                 context.stopService(i);
+                Settings.System.putInt(context.getContentResolver(), Settings.System.TORCH_STATE, 0);
             } else {
                 i.putExtra("bright", bright);
                 context.startService(i);
+                Settings.System.putInt(context.getContentResolver(), Settings.System.TORCH_STATE, 1);
             }
         }
     }
