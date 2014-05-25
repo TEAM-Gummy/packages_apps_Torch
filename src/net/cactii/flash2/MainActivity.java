@@ -21,6 +21,7 @@ package net.cactii.flash2;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,6 +29,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -69,8 +71,10 @@ public class MainActivity extends Activity {
             if (intent.getAction().equals(TorchSwitch.TORCH_STATE_CHANGED)) {
                 mTorchOn = intent.getIntExtra("state", 0) != 0;
                 if (mTorchOn) {
+                    Settings.System.putInt(mContext.getContentResolver(), Settings.System.TORCH_STATE, 1);
                     onFlashOn();
                 } else {
+                    Settings.System.putInt(mContext.getContentResolver(), Settings.System.TORCH_STATE, 0);
                     onFlashOff();
                 }
             }
@@ -140,6 +144,9 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 Intent intent = new Intent(TorchSwitch.TOGGLE_FLASHLIGHT);
                 intent.putExtra("bright", mBright);
+                Intent i = new Intent(TorchSwitch.TORCH_STATE_CHANGED);;
+                boolean state = i.getIntExtra("state", 0) != 0;
+                Settings.System.putInt(mContext.getContentResolver(), Settings.System.TORCH_STATE, state ? 1 : 0);
                 sendBroadcast(intent);
             }
         });
