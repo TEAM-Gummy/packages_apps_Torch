@@ -47,9 +47,13 @@ public class TorchSwitch extends BroadcastReceiver {
             // Unload intent extras if they exist:
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             boolean bright = intent.getBooleanExtra("bright", prefs.getBoolean("bright", false));
+            boolean stop = intent.getBooleanExtra("stop", false);
 
             Intent i = new Intent(context, TorchService.class);
-            if (this.torchServiceRunning(context)) {
+            if (stop || torchServiceRunning(context)) {
+                if (stop) {
+                    FlashDevice.instance(context).setFlashMode(FlashDevice.OFF);
+                }
                 context.stopService(i);
                 Settings.System.putInt(context.getContentResolver(), Settings.System.TORCH_STATE, 0);
             } else {

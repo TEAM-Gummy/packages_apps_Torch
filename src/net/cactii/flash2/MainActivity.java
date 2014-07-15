@@ -145,6 +145,7 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(TorchSwitch.TOGGLE_FLASHLIGHT);
                 intent.putExtra("bright", mBright);
                 Intent i = new Intent(TorchSwitch.TORCH_STATE_CHANGED);;
+                intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
                 boolean state = i.getIntExtra("state", 0) != 0;
                 Settings.System.putInt(mContext.getContentResolver(), Settings.System.TORCH_STATE, state ? 1 : 0);
                 sendBroadcast(intent);
